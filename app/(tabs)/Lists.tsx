@@ -1,40 +1,46 @@
-import React, { useState, useRef } from 'react';
-import { View, FlatList, StyleSheet, Text, StatusBar, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { useEvent } from 'expo';
+import { View, FlatList, StyleSheet, Text, StatusBar, TouchableOpacity, Button } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import Video, { VideoRef } from 'react-native-video';
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
+import { useVideoPlayer, VideoView } from 'expo-video';
+
+const videoSource = "";
 
 export default function Lists() {
-  const videoRef = useRef<VideoRef>(null);
+  
+  const player = useVideoPlayer(videoSource, player => {
+    player.loop = true;
+    player.play();
+  });
 
-  const [tasks, setTasks] = useState([
-    {
-      Task_Name: "How to Screw in a Nail on a Wooden Plank",
-      Task_Description: "1. Hammer nail in plank\n2. Hammer",
-      Task_Time: 2,
-      Task_Video: require('../../assets/Videos/HowToScrew.mp4'),
-      Expanded: false,
-    },
-  ]);
+  const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
+  
+  const [tasks, setTasks] = useState([{
+    Task_Name: "How to Screw in a Nail on a Wooden Plank",
+    Task_Description: "1. Hammer nail in plank\n2. Hammer",
+    Task_Time: 30,
+    Task_Video: require('../../assets/Videos/HowToScrew.mp4'),
+    Expanded: false,
+  }]);
 
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [timeStart, setTimeStart] = useState(false);
+  const [playingTaskIndex, setPlayingTaskIndex] = useState<number | null>(null);
 
   const removeTask = (index: number) => {
-    let object = [...tasks]; // Create a copy of tasks
-    object.splice(index, 1); // Remove at that index
+    let object = [...tasks];
+    object.splice(index, 1);
     setTasks(object);
   };
 
-  const onBuffer = () => {
-    console.log("Buffering...");
-  };
-
-  const onError = (error: any) => {
-    console.error("Error loading video:", error);
-  };
-
   const handlePlay = (index: number) => {
-    setIsPlaying(!isPlaying);
+    if (playingTaskIndex === index) {
+      setTimeStart(false);
+      setPlayingTaskIndex(null); // Stop playback
+    } else {
+      setTimeStart(true);
+      setPlayingTaskIndex(index); // Start playback
+    }
   };
 
   const toggleTaskExpansion = (index: number) => {
@@ -45,50 +51,37 @@ export default function Lists() {
 
   const Items = ({ task, index }: { task: any, index: number }) => (
     <View style={styles.item}>
-      {/* Title with toggle */}
       <TouchableOpacity onPress={() => toggleTaskExpansion(index)}>
         <Text style={styles.title}>{task.Task_Name}</Text>
       </TouchableOpacity>
 
-      {/* Conditionally render task details based on expansion state */}
       {task.Expanded && (
         <View>
           <Text>{task.Task_Description}</Text>
-          <Text>Time: {task.Task_Time} minutes</Text>
-
-          {/* Video Display */}
-          <View style={styles.videoContainer}>
-            <Video
-              source={task.Task_Video}
-              ref={videoRef}
-              onBuffer={onBuffer}
-              onError={onError}
-              style={styles.backgroundVideo}
-              controls={true}
-              muted={true}
-            />
-          </View>
-
-          {/* Countdown Timer when task is playing */}
-          {isPlaying && (
-            <CountdownCircleTimer
-              isPlaying
-              duration={10}
-              colors={['#004777', '#F7B801', '#A30000', '#A30000']}
-              colorsTime={[7, 5, 2, 0]}
-            >
-              {({ remainingTime }) => <Text>{remainingTime}</Text>}
-            </CountdownCircleTimer>
+          <Text>Time: {task.Task_Time} seconds</Text>
+          <VideoView style={styles.video} player={useVideoPlayer(task.Task_Video)} allowsFullscreen allowsPictureInPicture />
+          {timeStart && playingTaskIndex === index && (
+            <View>
+              <CountdownCircleTimer
+                isPlaying
+                duration={task.Task_Time}
+                colors={['#004777', '#F7B801', '#A30000', '#A30000']}
+                colorsTime={[7, 5, 2, 0]}
+              >
+                {({ remainingTime }) => <Text>{remainingTime}</Text>}
+              </CountdownCircleTimer>
+              <TouchableOpacity onPress={() => handlePlay(index)} style={styles.playButton}>
+                <Text style={styles.playText}>Stop Task</Text>
+              </TouchableOpacity>
+            </View>
           )}
 
-          {/* Start task button */}
-          {!isPlaying && (
+          {!timeStart && playingTaskIndex !== index && (
             <TouchableOpacity onPress={() => handlePlay(index)} style={styles.playButton}>
               <Text style={styles.playText}>Start Task</Text>
             </TouchableOpacity>
           )}
 
-          {/* Delete Button */}
           <TouchableOpacity style={styles.deleteButton} onPress={() => removeTask(index)}>
             <Text style={styles.deleteText}>Delete</Text>
           </TouchableOpacity>
@@ -153,13 +146,23 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     width: '100%',
-    height: 200, // Fixed height for the video container
-    overflow: 'hidden', // Ensure it doesn't overflow the container
+    height: 200,
+    overflow: 'hidden',
     borderRadius: 8,
     marginTop: 10,
   },
-  backgroundVideo: {
-    width: '100%',
-    height: '100%',
+  video: {
+    width: 350,
+    height: 275,
+  },
+  controlsContainer: {
+    padding: 10,
+  },
+  contentContainer: {
+    flex: 1,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 50,
   },
 });
