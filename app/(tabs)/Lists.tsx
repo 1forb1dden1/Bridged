@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useEvent } from 'expo';
-import { View, FlatList, StyleSheet, Text, StatusBar, TouchableOpacity, Button } from 'react-native';
+import { View, FlatList, StyleSheet, Text, StatusBar, TouchableOpacity, Button, TextInput } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import * as ImagePicker from 'expo-image-picker';
 
 const videoSource = "";
 
@@ -16,16 +17,22 @@ export default function Lists() {
 
   const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
   
-  const [tasks, setTasks] = useState([{
+  const [tasks, setTasks] = useState([
+    {
     Task_Name: "How to Screw in a Nail on a Wooden Plank",
     Task_Description: "1. Hammer nail in plank\n2. Hammer",
     Task_Time: 30,
     Task_Video: require('../../assets/Videos/HowToScrew.mp4'),
     Expanded: false,
-  }]);
+  }
+]);
 
   const [timeStart, setTimeStart] = useState(false);
   const [playingTaskIndex, setPlayingTaskIndex] = useState<number | null>(null);
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [newTaskName, setNewTaskName] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [newTaskTime, setNewTaskTime] = useState("");
 
   const removeTask = (index: number) => {
     let object = [...tasks];
@@ -49,6 +56,45 @@ export default function Lists() {
     setTasks(updatedTasks);
   };
 
+  const addNewTask = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        alert("You need to enable permission to access the library!");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        // Convert input time to number, default to 30 if invalid
+        const taskTime = parseInt(newTaskTime) || 30;
+        
+        const newTask = {
+          Task_Name: newTaskName || "New Video Task",
+          Task_Description: newTaskDescription || "Add description here",
+          Task_Time: taskTime,
+          Task_Video: result.assets[0].uri,
+          Expanded: false,
+        };
+        
+        setTasks([...tasks, newTask]);
+        setNewTaskName("");
+        setNewTaskDescription("");
+        setNewTaskTime("");
+        setIsAddingTask(false);
+      }
+    } catch (error) {
+      console.error("Error uploading video:", error);
+      alert("Error uploading video");
+    }
+  };
+
   const Items = ({ task, index }: { task: any, index: number }) => (
     <View style={styles.item}>
       <TouchableOpacity onPress={() => toggleTaskExpansion(index)}>
@@ -59,7 +105,15 @@ export default function Lists() {
         <View>
           <Text>{task.Task_Description}</Text>
           <Text>Time: {task.Task_Time} seconds</Text>
-          <VideoView style={styles.video} player={useVideoPlayer(task.Task_Video)} allowsFullscreen allowsPictureInPicture />
+          <VideoView 
+            style={styles.video} 
+            player={useVideoPlayer(task.Task_Video, player => {
+              player.loop = true;
+              player.play();
+            })} 
+            allowsFullscreen 
+            allowsPictureInPicture 
+          />
           {timeStart && playingTaskIndex === index && (
             <View>
               <CountdownCircleTimer
@@ -93,6 +147,55 @@ export default function Lists() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
+        {isAddingTask ? (
+          <View style={styles.addTaskContainer}>
+            <TextInput
+              style={styles.input}
+              value={newTaskName}
+              onChangeText={setNewTaskName}
+              placeholder="Enter task name"
+              placeholderTextColor="#666"
+            />
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={newTaskDescription}
+              onChangeText={setNewTaskDescription}
+              placeholder="Enter task description"
+              placeholderTextColor="#666"
+              multiline
+              numberOfLines={4}
+            />
+            <TextInput
+              style={styles.input}
+              value={newTaskTime}
+              onChangeText={setNewTaskTime}
+              placeholder="Enter task time (in seconds)"
+              placeholderTextColor="#666"
+              keyboardType="numeric"
+            />
+            <View style={styles.buttonRow}>
+              <TouchableOpacity 
+                style={[styles.button, styles.uploadButton]}
+                onPress={addNewTask}
+              >
+                <Text style={styles.buttonText}>Upload Video</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => setIsAddingTask(false)}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <TouchableOpacity 
+            style={styles.uploadButton}
+            onPress={() => setIsAddingTask(true)}
+          >
+            <Text style={styles.uploadButtonText}>Add New Task</Text>
+          </TouchableOpacity>
+        )}
         <FlatList
           data={tasks}
           renderItem={({ item, index }) => <Items task={item} index={index} />}
@@ -164,5 +267,57 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 50,
+  },
+  uploadButton: {
+    backgroundColor: '#4CAF50',
+    padding: 15,
+    margin: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  uploadButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  addTaskContainer: {
+    margin: 16,
+    padding: 16,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+  },
+  input: {
+    backgroundColor: '#ffffff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  button: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: 'red',
+    padding: 15,
+    margin: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
   },
 });
