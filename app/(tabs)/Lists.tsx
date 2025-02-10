@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEvent } from 'expo';
 import { View, FlatList, StyleSheet, Text, StatusBar, TouchableOpacity, Button, TextInput } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ImagePicker from 'expo-image-picker';
+import * as Speech from 'expo-speech';
+import { Ionicons } from '@expo/vector-icons';
+import Voice from '@react-native-voice/voice';
 
 const videoSource = "";
 
@@ -24,7 +27,21 @@ export default function Lists() {
     Task_Time: 30,
     Task_Video: require('../../assets/Videos/HowToScrew.mp4'),
     Expanded: false,
-  }
+  },
+  {
+    Task_Name: "2",
+    Task_Description: "1. Hammer nail in plank\n2. Hammer",
+    Task_Time: 30,
+    Task_Video: require('../../assets/Videos/HowToScrew.mp4'),
+    Expanded: false,
+  },
+  {
+    Task_Name: "Im pj",
+    Task_Description: "1. Hammer nail in plank\n2. Hammer",
+    Task_Time: 30,
+    Task_Video: require('../../assets/Videos/HowToScrew.mp4'),
+    Expanded: false,
+  },
 ]);
 
   const [timeStart, setTimeStart] = useState(false);
@@ -33,6 +50,8 @@ export default function Lists() {
   const [newTaskName, setNewTaskName] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newTaskTime, setNewTaskTime] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isListening, setIsListening] = useState(false);
 
   const removeTask = (index: number) => {
     let object = [...tasks];
@@ -95,6 +114,11 @@ export default function Lists() {
     }
   };
 
+  const filteredTasks = tasks.filter(task => 
+    task.Task_Name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    task.Task_Description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const Items = ({ task, index }: { task: any, index: number }) => (
     <View style={styles.item}>
       <TouchableOpacity onPress={() => toggleTaskExpansion(index)}>
@@ -144,9 +168,79 @@ export default function Lists() {
     </View>
   );
 
+  useEffect(() => {
+    Voice.onSpeechResults = onSpeechResults;
+    Voice.onSpeechError = onSpeechError;
+
+    return () => {
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
+
+  const onSpeechResults = (e) => {
+    const text = e.value[0];
+    setSearchQuery(text);
+    setIsListening(false);
+  };
+
+  const onSpeechError = (e) => {
+    console.error(e);
+    setIsListening(false);
+  };
+
+  const startVoiceSearch = async () => {
+    try {
+      setIsListening(true);
+      await Voice.start('en-US');
+    } catch (error) {
+      console.error(error);
+      setIsListening(false);
+    }
+  };
+
+  const stopVoiceSearch = async () => {
+    try {
+      await Voice.stop();
+      setIsListening(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={[styles.searchInput, isListening && styles.searchInputListening]}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search tasks..."
+            placeholderTextColor="#666"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity 
+              style={styles.clearButton}
+              onPress={() => setSearchQuery("")}
+            >
+              <Text style={styles.clearButtonText}>×</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity 
+            style={[
+              styles.voiceButton, 
+              isListening && styles.voiceButtonActive
+            ]}
+            onPress={isListening ? stopVoiceSearch : startVoiceSearch}
+          >
+            <Ionicons 
+              name={isListening ? "mic" : "mic-outline"} 
+              size={24} 
+              color={isListening ? "#4CAF50" : "#666"} 
+            />
+          </TouchableOpacity>
+        </View>
+
         {isAddingTask ? (
           <View style={styles.addTaskContainer}>
             <TextInput
@@ -197,7 +291,7 @@ export default function Lists() {
           </TouchableOpacity>
         )}
         <FlatList
-          data={tasks}
+          data={filteredTasks}
           renderItem={({ item, index }) => <Items task={item} index={index} />}
           keyExtractor={(item, index) => index.toString()}
         />
@@ -319,5 +413,56 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: 'top',
+  },
+  searchContainer: {
+    padding: 16,
+    paddingBottom: 8,
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingRight: 80,
+  },
+  searchInputListening: {
+    borderColor: '#4CAF50',
+    borderWidth: 2,
+  },
+  clearButton: {
+    position: 'absolute',
+    right: 60,
+    top: 24,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#ddd',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  voiceButton: {
+    position: 'absolute',
+    right: 24,
+    top: 24,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  voiceButtonActive: {
+    backgroundColor: '#e8f5e9',
+  },
+  clearButtonText: {
+    fontSize: 18,
+    color: '#666',
+    fontWeight: 'bold',
   },
 });
