@@ -34,30 +34,80 @@ export default function lists() {
     Task_Name: "How to Steam Milk",
     Task_Description: "1. Pour cold milk into a steaming pitcher.\n2. Place the steam wand just below the milk's surface.\n3. Turn on the steam and create a vortex.\n4. Heat until it reaches about 150°F (65°C).\n5. Tap the pitcher to remove bubbles and swirl before pouring.",
     Task_Time: 30,
-    Task_Video: require('../../assets/Videos/HowToStreamMilk.mp4'),
+    Task_Video: require('../../assets/Videos/HowToMakeTea.mp4'),
     Expanded: false,
   },
   {
     Task_Name: "How to prepare Espresso",
     Task_Description: "1. Grind fresh coffee beans to a fine consistency.\n2. Tamp the grounds evenly into the portafilter.\n3. Lock the portafilter into the espresso machine.\n4. Start the extraction process and brew for about 25-30 seconds.\n5. Serve immediately.",
     Task_Time: 30,
-    Task_Video: require('../../assets/Videos/HowToMakeEspresso.mp4'),
+    Task_Video: require('../../assets/Videos/HowToMakeTea.mp4'),
     Expanded: false,
   },
   {
     Task_Name: "How to prepare Tapioca",
     Task_Description: "1. Boil water in a pot.\n2. Add tapioca pearls and stir gently.\n3. Cook for about 15-20 minutes until translucent.\n4. Remove from heat and let sit for 5 minutes.\n5. Rinse under cold water and soak in syrup if desired.",
     Task_Time: 30,
-    Task_Video: require('../../assets/Videos/HowToMakeTapioca.mp4'),
-    Expanded: false,
-  },
-  {
-    Task_Name: "How to make British Tea",
-    Task_Description: "1. Boil fresh water to about 100°C (212°F).\n2. Pour hot water into a teapot or cup with a black tea bag or loose tea.\n3. Let it steep for 3-5 minutes, depending on your taste preference.\n4. Remove the tea bag or strain the loose tea.\n5. Add milk and sugar if desired, then enjoy.",
-    Task_Time: 30,
     Task_Video: require('../../assets/Videos/HowToMakeTea.mp4'),
     Expanded: false,
   },
+
+  {
+    Task_Name: "How to make French Press Coffee",
+    Task_Description: "1. Boil water and let it cool for about 30 seconds.\n2. Grind coffee beans to a coarse consistency.\n3. Add coffee grounds to the French Press (about 1:15 coffee-to-water ratio).\n4. Pour in hot water and stir gently.\n5. Place the lid on the press and let it steep for 4 minutes.\n6. Slowly press the plunger down and serve immediately.",
+    Task_Time: 30,
+    Task_Video: require('../../assets/Videos/HowToMakeTea.mp4'),
+    Expanded: false,
+},
+{
+    Task_Name: "How to Froth Milk",
+    Task_Description: "1. Pour cold milk into a frothing pitcher.\n2. Place the steam wand just below the surface of the milk.\n3. Turn on the steam and create a swirling motion.\n4. Keep frothing until the milk reaches around 150°F (65°C).\n5. Tap the pitcher to remove large bubbles and swirl the milk before serving.",
+    Task_Time: 15,
+    Task_Video: require('../../assets/Videos/HowToMakeTea.mp4'),
+    Expanded: false,
+},
+{
+    Task_Name: "How to make Iced Latte",
+    Task_Description: "1. Brew a shot of espresso and let it cool.\n2. Fill a glass with ice.\n3. Pour the cooled espresso over the ice.\n4. Add cold milk to fill the glass and stir gently.\n5. Optional: Add flavored syrup or sweetener of your choice.",
+    Task_Time: 10,
+    Task_Video: require('../../assets/Videos/HowToMakeTea.mp4'),
+    Expanded: false,
+},
+{
+    Task_Name: "How to make Matcha Latte",
+    Task_Description: "1. Sift matcha powder into a bowl.\n2. Add a small amount of hot water and whisk until smooth.\n3. Heat milk in a saucepan or with a frothing wand.\n4. Pour the matcha mixture into a cup and top with the hot milk.\n5. Stir gently and enjoy.",
+    Task_Time: 15,
+    Task_Video: require('../../assets/Videos/HowToMakeTea.mp4'),
+    Expanded: false,
+},
+{
+    Task_Name: "How to make Chai Latte",
+    Task_Description: "1. Brew chai tea using tea bags or loose tea.\n2. Heat milk in a saucepan until warm but not boiling.\n3. Mix the brewed tea with the warm milk.\n4. Add sweetener or spices to taste (like cinnamon or ginger).\n5. Stir and serve immediately.",
+    Task_Time: 15,
+    Task_Video: require('../../assets/Videos/HowToMakeTea.mp4'),
+    Expanded: false,
+},
+{
+    Task_Name: "How to prepare Cold Brew Coffee",
+    Task_Description: "1. Coarsely grind coffee beans.\n2. Combine coffee grounds with cold water in a large jar (1:4 coffee-to-water ratio).\n3. Stir and let the mixture sit at room temperature for 12-24 hours.\n4. Strain the coffee using a fine mesh sieve or cheesecloth.\n5. Serve over ice with milk or sweetener if desired.",
+    Task_Time: 30,
+    Task_Video: require('../../assets/Videos/HowToMakeTea.mp4'),
+    Expanded: false,
+},
+{
+    Task_Name: "How to make Hot Chocolate",
+    Task_Description: "1. Heat milk or water in a saucepan over medium heat.\n2. Add cocoa powder and sugar, stirring until dissolved.\n3. Bring to a gentle boil, then reduce the heat and simmer for a few minutes.\n4. Pour into a cup and top with whipped cream or marshmallows if desired.",
+    Task_Time: 15,
+    Task_Video: require('../../assets/Videos/HowToMakeTea.mp4'),
+    Expanded: false,
+},
+{
+    Task_Name: "How to Make Iced Tea",
+    Task_Description: "1. Boil water and steep your choice of tea bags for 5 minutes.\n2. Let the tea cool to room temperature.\n3. Pour over ice in a glass.\n4. Optional: Add lemon, mint, or sweetener to taste.",
+    Task_Time: 15,
+    Task_Video: require('../../assets/Videos/HowToMakeTea.mp4'),
+    Expanded: false,
+},
 ]);
 
   const [timeStart, setTimeStart] = useState(false);
@@ -70,10 +120,15 @@ export default function lists() {
   const [chatGPTOutput, setChatGPTOutput] = useState("");
   const [isListening, setIsListening] = useState(false);
 
-  const removeTask = (index: number) => {
-    let object = [...tasks];
-    object.splice(index, 1);
-    setTasks(object);
+  const removeTask = (input: string) => {
+    const updatedTasks = [...tasks];
+    for (let i = 0; i < updatedTasks.length; i++) {
+      if (updatedTasks[i].Task_Name === input) {
+        updatedTasks.splice(i, 1); // Removes the task at the given index
+        break; // Exit the loop after removal
+      }
+    }
+    setTasks(updatedTasks);
   };
   
   // Start Timer
@@ -87,9 +142,14 @@ export default function lists() {
     }
   };
 
-  const toggleTaskExpansion = (index: number) => {
+  const toggleTaskExpansion = (input: string) => {
+    console.log(input);
     const updatedTasks = [...tasks];
-    updatedTasks[index].Expanded = !updatedTasks[index].Expanded;
+    for (let i = 0; i < updatedTasks.length; i++) {
+      if (updatedTasks[i].Task_Name === input) {
+        updatedTasks[i].Expanded = !updatedTasks[i].Expanded;
+      }
+    }
     setTasks(updatedTasks);
   };
 
@@ -140,7 +200,7 @@ export default function lists() {
 
   const Items = ({ task, index }: { task: any, index: number }) => (
     <View style={styles.item}>
-      <TouchableOpacity onPress={() => toggleTaskExpansion(index)}>
+      <TouchableOpacity onPress={() => toggleTaskExpansion(task.Task_Name)}>
         <Text style={styles.title}>{task.Task_Name}</Text>
       </TouchableOpacity>
 
@@ -179,7 +239,7 @@ export default function lists() {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={styles.deleteButton} onPress={() => removeTask(index)}>
+          <TouchableOpacity style={styles.deleteButton} onPress={() => removeTask(task.Task_Name)}>
             <Text style={styles.deleteText}>Delete</Text>
           </TouchableOpacity>
         </View>
@@ -195,7 +255,7 @@ export default function lists() {
         messages: [
           {
             role: "user",
-            content: `These are all of our tasks: ${JSON.stringify(tasks)}, the user is providing this prompt: "${searchQuery}". Return the Task_Name of the best task to specify their needs. Only respond with the task name.`,
+            content: `These are all of our tasks: ${JSON.stringify(tasks)}, the user is providing this prompt: "${searchQuery}". Return the Task_Name of the best task to specify their needs. Only respond with the task name, do not reply with no relevent task. Must return something.`,
           },
         ],
       });
