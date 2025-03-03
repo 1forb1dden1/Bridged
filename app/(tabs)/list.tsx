@@ -7,13 +7,14 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ImagePicker from 'expo-image-picker';
 import * as Speech from 'expo-speech';
 import { Ionicons } from '@expo/vector-icons';
+import Voice from '@react-native-voice/voice';
 
 
 //https://platform.openai.com/docs/overview
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  //apiKey:
+  apiKey: "sk-proj-1234567890",
   dangerouslyAllowBrowser: true
 });
 
@@ -119,6 +120,37 @@ export default function lists() {
   const [searchQuery, setSearchQuery] = useState("");
   const [chatGPTOutput, setChatGPTOutput] = useState("");
   const [isListening, setIsListening] = useState(false);
+
+  useEffect(() => {
+    Voice.onSpeechResults = onSpeechResults;
+    return () => {
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
+
+  const onSpeechResults = (e: any) => {
+    if (e.value && e.value[0]) {
+      setSearchQuery(e.value[0]);
+    }
+  };
+
+  const startVoiceSearch = async () => {
+    try {
+      setIsListening(true);
+      await Voice.start('en-US');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const stopVoiceSearch = async () => {
+    try {
+      setIsListening(false);
+      await Voice.stop();
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const removeTask = (input: string) => {
     const updatedTasks = [...tasks];
@@ -267,7 +299,7 @@ export default function lists() {
       console.error("Error fetching ChatGPT response:", error);
     }
   };  
-  
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -288,7 +320,6 @@ export default function lists() {
               <Text style={styles.clearButtonText}>×</Text>
             </TouchableOpacity>
           )}
-          {/*
           <TouchableOpacity 
             style={[
               styles.voiceButton, 
@@ -302,7 +333,6 @@ export default function lists() {
               color={isListening ? "#4CAF50" : "#666"} 
             />
           </TouchableOpacity>
-        */}
         </View>
         <TouchableOpacity 
             style={styles.uploadButton}
