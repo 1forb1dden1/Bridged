@@ -16,24 +16,27 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Build a List 🚧</ThemedText>
+        <ThemedText type="title">Application Purpose</ThemedText>
       </ThemedView>
+      
+      <ThemedText type="subtitle">User's will be able to navigate through a list of pre-curated tasks. They can quickly search through for tasks to help match their specific needs.</ThemedText>
+
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Create List</ThemedText>
+        <ThemedText type="subtitle">Step 1: Click the Lists Tab</ThemedText>
         <ThemedText>
-            Tap the Create List Tab at the bottom. With the workers in mind, curate your own list which workers can follow as a guide.
+            Tap the Create List tab on the bottom right corner of the screen.
         </ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Finish Creation</ThemedText>
+        <ThemedText type="subtitle">Step 2: Press the microphone icon next to the search bar</ThemedText>
         <ThemedText>
-          After finishing creation of the list you will receive an access key for your list.
+          Speak into your device specifiying the needs you may have. An example may be "I don't know how to create an espresso".
         </ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Share your List</ThemedText>
+        <ThemedText type="subtitle">Step 3: Open the task that shown</ThemedText>
         <ThemedText>
-            Provide the key for the list to the user. This key is the only way the worker can access this list.
+            Open the task and follow the steps as outlined or watch the video for guidance on your needs!
         </ThemedText>
       </ThemedView>
     </ParallaxScrollView>
@@ -49,6 +52,7 @@ const styles = StyleSheet.create({
   stepContainer: {
     gap: 8,
     marginBottom: 8,
+    fontWeight: 'normal',
   },
   reactLogo: {
     height: 275,

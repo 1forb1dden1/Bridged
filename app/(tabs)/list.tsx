@@ -14,7 +14,7 @@ import Voice from '@react-native-voice/voice';
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  apiKey: "sk-proj-1234567890",
+  //
   dangerouslyAllowBrowser: true
 });
 
@@ -130,7 +130,7 @@ export default function lists() {
 
   const onSpeechResults = (e: any) => {
     if (e.value && e.value[0]) {
-      setSearchQuery(e.value[0]);
+      var filtered_result = handleChatGPTQuery(e.value[0]);
     }
   };
 
@@ -279,7 +279,7 @@ export default function lists() {
     </View>
   );
 
-  const handleChatGPTQuery = async () => {
+  const handleChatGPTQuery = async (value: any) => {
     try {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -287,7 +287,7 @@ export default function lists() {
         messages: [
           {
             role: "user",
-            content: `These are all of our tasks: ${JSON.stringify(tasks)}, the user is providing this prompt: "${searchQuery}". Return the Task_Name of the best task to specify their needs. Only respond with the task name, do not reply with no relevent task. Must return something.`,
+            content: `These are all of our tasks: ${JSON.stringify(tasks)}, the user is providing this prompt: "${value}". Return the Task_Name of the best task to specify their needs. Only respond with the task name, do not reply with no relevent task. Must return something.`,
           },
         ],
       });
@@ -310,7 +310,7 @@ export default function lists() {
             onChangeText={setSearchQuery}
             placeholder="Search tasks..."
             placeholderTextColor="#666"
-            onSubmitEditing={handleChatGPTQuery}
+            onSubmitEditing={() => handleChatGPTQuery(searchQuery)}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity 
@@ -381,13 +381,7 @@ export default function lists() {
               </TouchableOpacity>
             </View>
           </View>
-        ) : (
-          <TouchableOpacity 
-            style={styles.uploadButton}
-            onPress={() => handleChatGPTQuery()}
-          >
-            <Text style={styles.uploadButtonText}>Advanced Search</Text>
-          </TouchableOpacity>
+        ) : (<View></View>
         )}
         <FlatList
           data={filteredTasks}
