@@ -14,7 +14,7 @@ import Voice from '@react-native-voice/voice';
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  //
+  apiKey: ,
   dangerouslyAllowBrowser: true
 });
 
@@ -118,6 +118,7 @@ export default function lists() {
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newTaskTime, setNewTaskTime] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [speechResults, setSpeechResults] = useState("");
   const [chatGPTOutput, setChatGPTOutput] = useState("");
   const [isListening, setIsListening] = useState(false);
 
@@ -125,12 +126,13 @@ export default function lists() {
     Voice.onSpeechResults = onSpeechResults;
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
+      console.log(speechResults)
     };
   }, []);
-
+  
   const onSpeechResults = (e: any) => {
     if (e.value && e.value[0]) {
-      var filtered_result = handleChatGPTQuery(e.value[0]);
+      setSpeechResults(e.value[0]);
     }
   };
 
@@ -156,8 +158,8 @@ export default function lists() {
     const updatedTasks = [...tasks];
     for (let i = 0; i < updatedTasks.length; i++) {
       if (updatedTasks[i].Task_Name === input) {
-        updatedTasks.splice(i, 1); // Removes the task at the given index
-        break; // Exit the loop after removal
+        updatedTasks.splice(i, 1);
+        break;
       }
     }
     setTasks(updatedTasks);
@@ -270,10 +272,11 @@ export default function lists() {
               <Text style={styles.playText}>Start Task</Text>
             </TouchableOpacity>
           )}
-
+          {/*
           <TouchableOpacity style={styles.deleteButton} onPress={() => removeTask(task.Task_Name)}>
             <Text style={styles.deleteText}>Delete</Text>
           </TouchableOpacity>
+          */}
         </View>
       )}
     </View>
@@ -295,6 +298,7 @@ export default function lists() {
       const responseText = completion.choices[0]?.message?.content ?? '';
       setChatGPTOutput(responseText);
       setSearchQuery(responseText);
+      toggleTaskExpansion(responseText);
     } catch (error) {
       console.error("Error fetching ChatGPT response:", error);
     }
@@ -396,166 +400,180 @@ export default function lists() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: StatusBar.currentHeight || 0,
+    backgroundColor: "#F4F4F4",
+    paddingTop: StatusBar.currentHeight || 0,
   },
   item: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     padding: 20,
     marginVertical: 8,
     marginHorizontal: 16,
-    borderRadius: 8,
-    position: 'relative',
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
   title: {
-    marginTop: 0,
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
   },
   deleteButton: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    backgroundColor: 'red',
-    padding: 5,
-    borderRadius: 50,
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "#FF3B30",
+    padding: 6,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   deleteText: {
-    color: 'white',
-    fontSize: 15,
+    color: "white",
+    fontSize: 14,
+    fontWeight: "bold",
   },
   playButton: {
-    backgroundColor: '#008CBA',
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   playText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    textAlign: 'center',
+    fontWeight: "bold",
   },
   videoContainer: {
-    width: '100%',
+    width: "100%",
     height: 200,
-    overflow: 'hidden',
-    borderRadius: 8,
+    borderRadius: 12,
+    overflow: "hidden",
     marginTop: 10,
+    backgroundColor: "#E0E0E0",
   },
   video: {
-    width: 350,
-    height: 275,
-  },
-  controlsContainer: {
-    padding: 10,
-  },
-  contentContainer: {
-    flex: 1,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 50,
+    width: "100%",
+    height: "100%",
   },
   uploadButton: {
-    backgroundColor: '#4CAF50',
-    padding: 15,
-    margin: 16,
-    borderRadius: 8,
-    alignItems: 'center',
+    backgroundColor: "#34C759",
+    paddingVertical: 14,
+    marginHorizontal: 16,
+    marginTop: 10,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
   },
   uploadButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   addTaskContainer: {
-    margin: 16,
+    backgroundColor: "#ffffff",
     padding: 16,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
+    marginHorizontal: 16,
+    marginVertical: 10,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   input: {
-    backgroundColor: '#ffffff',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
+    backgroundColor: "#F8F8F8",
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 10,
     fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
   buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   button: {
     flex: 1,
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
     marginHorizontal: 5,
   },
   cancelButton: {
-    backgroundColor: 'red',
-    padding: 15,
-    margin: 16,
-    borderRadius: 8,
-    alignItems: 'center',
+    backgroundColor: "#FF3B30",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
   },
   buttonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   textArea: {
     height: 100,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   searchContainer: {
-    padding: 16,
-    paddingBottom: 8,
-    position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    margin: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
   searchInput: {
     flex: 1,
-    backgroundColor: '#ffffff',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: "#F8F8F8",
+    padding: 14,
+    borderRadius: 10,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#ddd',
-    paddingRight: 80,
+    borderColor: "#E0E0E0",
   },
   searchInputListening: {
-    borderColor: '#4CAF50',
+    borderColor: "#34C759",
     borderWidth: 2,
   },
   clearButton: {
-    position: 'absolute',
-    right: 60,
-    top: 24,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#ddd',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  voiceButton: {
-    position: 'absolute',
-    right: 24,
-    top: 24,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  voiceButtonActive: {
-    backgroundColor: '#e8f5e9',
+    marginLeft: 8,
+    backgroundColor: "#ddd",
+    padding: 8,
+    borderRadius: 8,
   },
   clearButtonText: {
     fontSize: 18,
-    color: '#666',
-    fontWeight: 'bold',
+    color: "#666",
+    fontWeight: "bold",
+  },
+  voiceButton: {
+    marginLeft: 8,
+    backgroundColor: "#E0E0E0",
+    padding: 10,
+    borderRadius: 8,
+  },
+  voiceButtonActive: {
+    backgroundColor: "#D4F4D2",
   },
 });
