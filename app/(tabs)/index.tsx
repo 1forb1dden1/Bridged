@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -12,33 +12,40 @@ export default function HomeScreen() {
       headerImage={
         <Image
           source={require('@/assets/images/Workers.png')}
-          style={styles.reactLogo}
+          style={styles.headerImage}
         />
       }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Application Purpose</ThemedText>
-      </ThemedView>
       
-      <ThemedText type="subtitle">User's will be able to navigate through a list of pre-curated tasks. They can quickly search through for tasks to help match their specific needs.</ThemedText>
+      <ThemedView style={styles.titleContainer}>
+        <ThemedText type="title">Your Job Helper</ThemedText>
+      </ThemedView>
+
+      <ThemedText type="subtitle">
+        Need help with a task? 🛠️
+      </ThemedText>
 
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Click the Lists Tab</ThemedText>
+        <ThemedText type="subtitle">1️⃣ Open the Lists Tab</ThemedText>
         <ThemedText>
-            Tap the Create List tab on the bottom right corner of the screen.
+          Tap the Lists tab at the bottom of the screen. Want to create your own? ➕ Click Create List in the bottom right corner.
         </ThemedText>
       </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Press the microphone icon next to the search bar</ThemedText>
+        <ThemedText type="subtitle">2️⃣ Use Voice Search 🎤</ThemedText>
         <ThemedText>
-          Speak into your device specifiying the needs you may have. An example may be "I don't know how to create an espresso".
+          Tap the microphone icon next to the search bar and speak your request.  
+          Example: "How do I make an espresso?" ☕ The app will find the most relevant task for you!
         </ThemedText>
       </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Open the task that shown</ThemedText>
+        <ThemedText type="subtitle">3️⃣ Follow the Steps ✅</ThemedText>
         <ThemedText>
-            Open the task and follow the steps as outlined or watch the video for guidance on your needs!
+          Open the task and follow the step-by-step guide. Prefer a visual demo? 🎬 Watch the video tutorial for hands-on guidance!
         </ThemedText>
       </ThemedView>
+
     </ParallaxScrollView>
   );
 }
@@ -51,14 +58,13 @@ const styles = StyleSheet.create({
   },
   stepContainer: {
     gap: 8,
-    marginBottom: 8,
-    fontWeight: 'normal',
+    marginBottom: 12,
   },
-  reactLogo: {
+  headerImage: {
     height: 275,
     width: 450,
+    position: 'absolute',
     bottom: 0,
     left: 0,
-    position: 'absolute',
   },
 });

@@ -14,7 +14,7 @@ import Voice from '@react-native-voice/voice';
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  apiKey: ,
+  apiKey: "",
   dangerouslyAllowBrowser: true
 });
 
@@ -119,7 +119,6 @@ export default function lists() {
   const [newTaskTime, setNewTaskTime] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [speechResults, setSpeechResults] = useState("");
-  const [chatGPTOutput, setChatGPTOutput] = useState("");
   const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
@@ -149,6 +148,7 @@ export default function lists() {
     try {
       setIsListening(false);
       await Voice.stop();
+      handleChatGPTQuery(speechResults);
     } catch (e) {
       console.error(e);
     }
@@ -233,53 +233,64 @@ export default function lists() {
 
 
   const Items = ({ task, index }: { task: any, index: number }) => (
-    <View style={styles.item}>
-      <TouchableOpacity onPress={() => toggleTaskExpansion(task.Task_Name)}>
-        <Text style={styles.title}>{task.Task_Name}</Text>
-      </TouchableOpacity>
-
+    <TouchableOpacity 
+      style={[styles.taskCard, task.Expanded && styles.expandedTask]} 
+      onPress={() => toggleTaskExpansion(task.Task_Name)}
+    >
+      {/* Task Title */}
+      <View style={styles.taskHeader}>
+        <Text style={styles.taskTitle}>{task.Task_Name}</Text>
+        <Ionicons 
+          name={task.Expanded ? "chevron-up-outline" : "chevron-down-outline"} 
+          size={24} 
+          color="#666" 
+        />
+      </View>
+  
+      {/* Expanded Content */}
       {task.Expanded && (
-        <View>
-          <Text>{task.Task_Description}</Text>
-          <Text>Time: {task.Task_Time} seconds</Text>
-          <VideoView 
-            style={styles.video} 
-            player={useVideoPlayer(task.Task_Video, player => {
-              player.loop = true;
-              player.play();
-            })} 
-            allowsFullscreen 
-            allowsPictureInPicture 
-          />
-          {timeStart && playingTaskIndex === index && (
-            <View>
-              <CountdownCircleTimer
-                isPlaying
-                duration={task.Task_Time}
-                colors={['#004777', '#F7B801', '#A30000', '#A30000']}
-                colorsTime={[7, 5, 2, 0]}
-              >
-                {({ remainingTime }) => <Text>{remainingTime}</Text>}
-              </CountdownCircleTimer>
-              <TouchableOpacity onPress={() => handlePlay(index)} style={styles.playButton}>
-                <Text style={styles.playText}>Stop Task</Text>
+        <View style={styles.taskContent}>
+          <Text style={styles.taskDescription}>{task.Task_Description}</Text>
+          <Text style={styles.taskTime}>⏳ Estimated Time: {task.Task_Time} sec</Text>
+  
+          {/* Video Player */}
+          <View style={styles.videoContainer}>
+            <VideoView 
+              style={styles.video} 
+              player={useVideoPlayer(task.Task_Video, player => {
+                player.loop = true;
+                player.play();
+              })} 
+              allowsFullscreen 
+              allowsPictureInPicture 
+            />
+          </View>
+  
+          {/* Timer & Buttons */}
+          <View style={styles.taskActions}>
+            {timeStart && playingTaskIndex === index ? (
+              <View style={styles.countdownContainer}>
+                <CountdownCircleTimer
+                  isPlaying
+                  duration={task.Task_Time}
+                  colors={["#004777", "#F7B801", "#A30000", "#A30000"]}
+                  colorsTime={[7, 5, 2, 0]}
+                >
+                  {({ remainingTime }) => <Text style={styles.timerText}>{remainingTime}s</Text>}
+                </CountdownCircleTimer>
+                <TouchableOpacity onPress={() => handlePlay(index)} style={styles.stopButton}>
+                  <Text style={styles.buttonText}>Stop Task</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity onPress={() => handlePlay(index)} style={styles.startButton}>
+                <Text style={styles.buttonText}>Start Task</Text>
               </TouchableOpacity>
-            </View>
-          )}
-
-          {!timeStart && playingTaskIndex !== index && (
-            <TouchableOpacity onPress={() => handlePlay(index)} style={styles.playButton}>
-              <Text style={styles.playText}>Start Task</Text>
-            </TouchableOpacity>
-          )}
-          {/*
-          <TouchableOpacity style={styles.deleteButton} onPress={() => removeTask(task.Task_Name)}>
-            <Text style={styles.deleteText}>Delete</Text>
-          </TouchableOpacity>
-          */}
+            )}
+          </View>
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   const handleChatGPTQuery = async (value: any) => {
@@ -296,7 +307,6 @@ export default function lists() {
       });
   
       const responseText = completion.choices[0]?.message?.content ?? '';
-      setChatGPTOutput(responseText);
       setSearchQuery(responseText);
       toggleTaskExpansion(responseText);
     } catch (error) {
@@ -398,61 +408,76 @@ export default function lists() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F4F4",
-    paddingTop: StatusBar.currentHeight || 0,
+  startButton: {
+    backgroundColor: "#1E90FF",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: "center",
   },
-  item: {
-    backgroundColor: "#ffffff",
-    padding: 20,
-    marginVertical: 8,
+  stopButton: {
+    backgroundColor: "#FF3B30",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  timerText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#FFD700",
+  },
+  taskActions: {
+    alignItems: "center",
+    marginTop: 10,
+  },
+  countdownContainer: {
+    alignItems: "center",
+  },
+  taskTime: {
+    fontSize: 14,
+    color: "#BBBBBB",
+    marginBottom: 12,
+  },
+  taskDescription: {
+    fontSize: 16,
+    color: "#CCCCCC",
+    lineHeight: 22,
+    marginBottom: 10,
+  },
+  taskContent: {
+    marginTop: 12,
+  },
+  taskTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  taskHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  taskCard: {
+    backgroundColor: "#222831",
+    padding: 16,
     marginHorizontal: 16,
+    marginVertical: 8,
     borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowRadius: 5,
     elevation: 3,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
+  expandedTask: {
+    backgroundColor: "#393E46",
   },
-  deleteButton: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: "#FF3B30",
-    padding: 6,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  deleteText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  playButton: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginTop: 12,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  },
-  playText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
+  container: {
+    flex: 1,
+    backgroundColor: "#121212",
+    paddingTop: StatusBar.currentHeight || 0,
   },
   videoContainer: {
     width: "100%",
@@ -460,7 +485,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     marginTop: 10,
-    backgroundColor: "#E0E0E0",
+    backgroundColor: "#181818",
   },
   video: {
     width: "100%",
@@ -471,6 +496,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginHorizontal: 16,
     marginTop: 10,
+    marginBottom: 15,
     borderRadius: 12,
     alignItems: "center",
     shadowColor: "#000",
@@ -484,7 +510,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   addTaskContainer: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#1E1E1E",
     padding: 16,
     marginHorizontal: 16,
     marginVertical: 10,
@@ -495,13 +521,14 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   input: {
-    backgroundColor: "#F8F8F8",
+    backgroundColor: "#2D2D2D",
+    color: "#FFFFFF",
     padding: 14,
     borderRadius: 10,
     marginBottom: 10,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: "#555555",
   },
   buttonRow: {
     flexDirection: "row",
@@ -517,9 +544,15 @@ const styles = StyleSheet.create({
   cancelButton: {
     backgroundColor: "#FF3B30",
     paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
+    marginHorizontal: 16,
     marginTop: 10,
+    marginBottom: 15,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
   },
   buttonText: {
     color: "white",
@@ -533,7 +566,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#222831",
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 10,
@@ -545,12 +578,13 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    backgroundColor: "#F8F8F8",
+    backgroundColor: "#2D2D2D",
+    color: "#FFFFFF",
     padding: 14,
     borderRadius: 10,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: "#444444",
   },
   searchInputListening: {
     borderColor: "#34C759",
@@ -558,22 +592,22 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     marginLeft: 8,
-    backgroundColor: "#ddd",
+    backgroundColor: "#444",
     padding: 8,
     borderRadius: 8,
   },
   clearButtonText: {
     fontSize: 18,
-    color: "#666",
+    color: "#CCCCCC",
     fontWeight: "bold",
   },
   voiceButton: {
     marginLeft: 8,
-    backgroundColor: "#E0E0E0",
+    backgroundColor: "#333",
     padding: 10,
     borderRadius: 8,
   },
   voiceButtonActive: {
-    backgroundColor: "#D4F4D2",
+    backgroundColor: "#444",
   },
 });
